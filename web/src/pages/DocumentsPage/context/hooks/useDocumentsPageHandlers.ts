@@ -36,11 +36,17 @@ export const useDocumentsPageHandlers = () => {
     dispatch(setSearchQuery(query));
   }, [dispatch]);
 
+  const handleCreateSubfolder = useCallback(() => {
+    // TODO: Open create subfolder modal
+    console.log('Create subfolder clicked');
+  }, []);
+
   return {
     handleCreateDocument,
     handleViewDocument,
     handleDeleteDocument,
     handleCreateQuizFromDocument,
     handleSearchChange,
+    handleCreateSubfolder,
   };
 };

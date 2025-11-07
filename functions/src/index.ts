@@ -112,3 +112,13 @@ export {
   formatRulesForPromptEndpoint as formatRulesForPrompt,
   getRuleTagsEndpoint as getRuleTags,
 } from "./endpoints/rules";
+
+// Export directory management functions
+export {
+  getDirectories,
+  getDirectoryTree,
+  getDirectory,
+  createDirectory,
+  updateDirectory,
+  deleteDirectory,
+} from "./endpoints/directories";

@@ -33,6 +33,7 @@ export interface Document {
   createdAt: Date;
   userId?: string;
   storageUrl: string; // Firebase Storage download URL for the markdown file
+  directoryId?: string; // Optional: Directory this document belongs to
 }
 
 // Document Enums
@@ -61,6 +62,7 @@ export interface DocumentEnhanced {
   storageUrl: string;
   storagePath: string;
   tags: string[];
+  directoryId?: string; // Optional: Directory this document belongs to
   createdAt: Date | { toDate(): Date }; // Can be Date or Firestore Timestamp
   updatedAt: Date | { toDate(): Date }; // Can be Date or Firestore Timestamp
 }
@@ -381,6 +383,23 @@ export interface Directory {
   updatedAt: Date | { toDate(): Date };
 }
 
+// Enhanced Directory with computed properties for UI
+export interface DirectoryEnhanced extends Directory {
+  documentCount: number; // Number of documents in this directory
+  children?: DirectoryEnhanced[]; // Child directories for tree view
+  depth: number; // Nesting level for UI indentation
+}
+
+// Directory Tree Node for sidebar navigation
+export interface DirectoryTreeNode {
+  id: string;
+  name: string;
+  path: string;
+  documentCount: number;
+  children: DirectoryTreeNode[];
+  isExpanded?: boolean; // UI state for collapsible tree
+}
+
 export interface Rule {
   id: string;
   userId: string;
@@ -447,6 +466,34 @@ export interface GetDirectoryRulesResponse {
   inheritanceMap: {
     [directoryId: string]: Rule[];
   };
+}
+
+// Directory API Types
+export interface CreateDirectoryRequest {
+  name: string;
+  parentId?: string | null; // Optional: Parent directory for hierarchical structure
+}
+
+export interface CreateDirectoryResponse {
+  directory: Directory;
+}
+
+export interface UpdateDirectoryRequest {
+  directoryId: string;
+  name?: string;
+  parentId?: string | null;
+}
+
+export interface DeleteDirectoryRequest {
+  directoryId: string;
+}
+
+export interface GetDirectoriesResponse {
+  directories: DirectoryEnhanced[];
+}
+
+export interface GetDirectoryTreeResponse {
+  tree: DirectoryTreeNode[];
 }
 
 export interface GetApplicableRulesRequest {

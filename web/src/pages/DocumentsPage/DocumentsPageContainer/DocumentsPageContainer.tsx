@@ -1,18 +1,21 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { useDocumentsPageContext } from '../context/hooks/useDocumentsPageContext';
-import { selectSearchQuery } from '../../../store/slices/documentsPageSlice';
+import { selectSearchQuery, selectSelectedDirectoryId, setSelectedDirectoryId } from '../../../store/slices/documentsPageSlice';
+import { useDispatch } from 'react-redux';
 import { Page } from '../../../components/Page';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { ActionsDropdown } from '../../../components/ui/ActionsDropdown';
+import { DirectoryTree } from '../../../components/DirectoryTree';
 import { documentsPageStyles } from './DocumentsPageContainer.styles';
-import { Plus, Search, FileText, Calendar, Eye, Brain, Trash2 } from 'lucide-react';
+import { Plus, Search, FileText, Calendar, Eye, Brain, Trash2, Folder } from 'lucide-react';
 import { DocumentEnhanced } from "@shared-types";
 import { formatDate } from '../../../utils/dateUtils';
 
 export const DocumentsPageContainer = () => {
+  const dispatch = useDispatch();
   const { 
     documentsApi,
     handlers 
@@ -20,6 +23,34 @@ export const DocumentsPageContainer = () => {
 
   const { documents, isLoading, error } = documentsApi;
   const searchQuery = useSelector(selectSearchQuery);
+  const selectedDirectoryId = useSelector(selectSelectedDirectoryId);
+
+  // Filter documents by selected directory
+  const filteredDocuments = React.useMemo(() => {
+    if (!documents) return [];
+    
+    let filtered = documents;
+    
+    // Filter by directory
+    if (selectedDirectoryId) {
+      filtered = filtered.filter(doc => doc.directoryId === selectedDirectoryId);
+    }
+    
+    // Filter by search query
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase();
+      filtered = filtered.filter(doc => 
+        doc.title.toLowerCase().includes(lowerQuery) ||
+        doc.description?.toLowerCase().includes(lowerQuery)
+      );
+    }
+    
+    return filtered;
+  }, [documents, selectedDirectoryId, searchQuery]);
+
+  const handleSelectDirectory = (directoryId: string | null) => {
+    dispatch(setSelectedDirectoryId(directoryId));
+  };
 
   // Early returns for loading and error states
   if (isLoading) {
@@ -46,7 +77,37 @@ export const DocumentsPageContainer = () => {
 
   return (
     <Page showSidebar={true}>
-      <div className={documentsPageStyles.container}>
+      <div className="flex h-full">
+        {/* Left Sidebar - Directory Tree */}
+        <div className="w-64 border-r bg-card flex-shrink-0">
+          <div className="sticky top-0 h-screen overflow-y-auto">
+            <div className="p-4 border-b">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Folder size={20} />
+                Folders
+              </h2>
+            </div>
+            <DirectoryTree 
+              onSelectDirectory={handleSelectDirectory}
+              selectedDirectoryId={selectedDirectoryId}
+            />
+            <div className="p-4">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={handlers.handleCreateSubfolder}
+              >
+                <Plus size={16} />
+                New Subfolder
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 overflow-y-auto">
+          <div className={documentsPageStyles.container}>
         {/* Header */}
         <div className={documentsPageStyles.header}>
           <div className={documentsPageStyles.headerContent}>
@@ -79,7 +140,7 @@ export const DocumentsPageContainer = () => {
         </div>
 
         {/* Documents Grid */}
-        {!documents || documents.length === 0 ? (
+        {!filteredDocuments || filteredDocuments.length === 0 ? (
           <Card className={documentsPageStyles.emptyState}>
             <CardContent className="text-center p-8">
               <FileText size={48} className="mx-auto mb-4 text-muted-foreground" />
@@ -95,7 +156,7 @@ export const DocumentsPageContainer = () => {
           </Card>
         ) : (
           <div className={documentsPageStyles.documentsGrid}>
-            {documents?.map((document: DocumentEnhanced) => (
+            {filteredDocuments?.map((document: DocumentEnhanced) => (
               <Card key={document.id} className={documentsPageStyles.documentCard}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -173,6 +234,8 @@ export const DocumentsPageContainer = () => {
             ))}
           </div>
         )}
+          </div>
+        </div>
       </div>
     </Page>
   );
