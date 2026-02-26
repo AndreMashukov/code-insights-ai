@@ -16,6 +16,7 @@ import { CreateDocumentPage } from '../pages/CreateDocumentPage';
 import { DocumentViewerPage } from '../pages/DocumentViewerPage';
 import { MyQuizzesPage } from '../pages/MyQuizzesPage';
 import { RulesPage } from '../pages/RulesPage';
+import { FlashcardsPage } from '../pages/FlashcardsPage';
 import { DirectoryRulesPage } from '../pages/DirectoryRulesPage';
 import { Page } from '../components/Page';
 
@@ -189,6 +190,18 @@ const AppContent = () => {
           <MainLayout>
             <ProtectedRoute>
               <DirectoryRulesPage />
+            </ProtectedRoute>
+          </MainLayout>
+        } 
+      />
+
+      {/* Flashcards Route */}
+      <Route 
+        path="/flashcards/:directoryId" 
+        element={
+          <MainLayout>
+            <ProtectedRoute>
+              <FlashcardsPage />
             </ProtectedRoute>
           </MainLayout>
         } 
