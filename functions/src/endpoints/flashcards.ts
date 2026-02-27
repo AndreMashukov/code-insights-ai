@@ -28,19 +28,28 @@ export const generateFlashcards = onRequest({ cors: true }, async (req, res) => 
       return;
     }
 
+    const userId = req.headers['x-user-id'] as string;
+    if (!userId) {
+      res.status(401).json({ error: 'User ID is required' });
+      return;
+    }
+
     // Fetch the document
-    const document = await FirestoreService.getDocument(documentId);
+    const document = await FirestoreService.getDocument(userId, documentId);
     if (!document) {
       res.status(404).json({ error: 'Document not found' });
       return;
     }
 
+    // Fetch document content
+    const content = await FirestoreService.getDocumentContent(userId, documentId);
+
     // Generate flashcards using Gemini
     const flashcardData = await GeminiService.generateFlashcards(
       {
         title: document.title,
-        content: document.content,
-        wordCount: document.wordCount,
+        content: content,
+        wordCount: document.wordCount || content.split(/\s+/).length,
       },
       {
         difficulty: difficulty || 'intermediate',
@@ -158,11 +167,11 @@ export const getFlashcardSet = onRequest({ cors: true }, async (req, res) => {
     }
 
     const setData = setDoc.data()!;
-    const flashcardSet: FlashcardSet = {
+    const flashcardSet = {
       ...setData,
       createdAt: setData.createdAt.toDate(),
       lastStudiedAt: setData.lastStudiedAt?.toDate(),
-    };
+    } as FlashcardSet;
 
     // Get all flashcards in the set
     const cardsSnapshot = await db
@@ -336,7 +345,10 @@ export const deleteFlashcardSet = onRequest({ cors: true }, async (req, res) => 
 async function formatRules(ruleIds: string[]): Promise<string> {
   try {
     const rules = await Promise.all(
-      ruleIds.map(id => FirestoreService.getRule(id))
+      ruleIds.map(async id => {
+        const doc = await db.collection('rules').doc(id).get();
+        return doc.exists ? doc.data() : null;
+      })
     );
     
     return rules
