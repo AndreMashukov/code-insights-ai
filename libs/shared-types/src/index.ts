@@ -464,6 +464,7 @@ export enum RuleApplicability {
   PROMPT = 'prompt',
   QUIZ = 'quiz',
   FOLLOWUP = 'followup',
+  FLASHCARDS = 'flashcards',
 }
 
 export enum RuleColor {
@@ -597,4 +598,100 @@ export interface AttachRuleResponse {
 
 export interface DetachRuleResponse {
   success: boolean;
+}
+
+// Flashcard Types (AI-generated study cards)
+export interface FlashcardSet {
+  id: string;
+  documentId: string; // Source document
+  title: string;
+  description?: string;
+  cardCount: number;
+  userId?: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  tags: string[];
+  createdAt: Date | { toDate(): Date };
+  lastStudiedAt?: Date | { toDate(): Date };
+  masteryLevel: number; // 0-100%
+  documentTitle?: string; // Cached for performance
+}
+
+export interface Flashcard {
+  id: string;
+  setId: string;
+  front: string; // Question/prompt
+  back: string; // Answer/explanation
+  difficulty: 1 | 2 | 3 | 4 | 5; // 1=easy, 5=hard
+  tags: string[];
+  createdAt: Date | { toDate(): Date };
+  
+  // Spaced repetition metadata
+  studyCount: number;
+  correctCount: number;
+  lastStudyDate?: Date | { toDate(): Date };
+  nextReviewDate?: Date | { toDate(): Date };
+  interval: number; // Days until next review
+}
+
+export interface FlashcardStudySession {
+  id: string;
+  setId: string;
+  userId: string;
+  startedAt: Date | { toDate(): Date };
+  completedAt?: Date | { toDate(): Date };
+  cardsStudied: number;
+  correctAnswers: number;
+  sessionDuration: number; // seconds
+}
+
+// Flashcard API Types
+export interface GenerateFlashcardsRequest {
+  documentId: string;
+  title?: string;
+  description?: string;
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  tags?: string[];
+  ruleIds?: string[]; // Optional rules for flashcard generation
+}
+
+export interface GenerateFlashcardsResponse {
+  setId: string;
+  flashcardSet: FlashcardSet;
+  flashcards: Flashcard[];
+}
+
+export interface GetFlashcardSetsRequest {
+  userId?: string;
+  documentId?: string;
+}
+
+export interface GetFlashcardSetsResponse {
+  flashcardSets: FlashcardSet[];
+}
+
+export interface GetFlashcardSetResponse {
+  flashcardSet: FlashcardSet;
+  flashcards: Flashcard[];
+}
+
+export interface UpdateStudyProgressRequest {
+  flashcardId: string;
+  setId: string;
+  isCorrect: boolean;
+  studyDuration: number; // seconds
+}
+
+export interface UpdateStudyProgressResponse {
+  flashcard: Flashcard;
+  nextReviewDate: Date;
+  masteryLevel: number;
+}
+
+export interface DeleteFlashcardSetRequest {
+  setId: string;
+}
+
+export interface DeleteFlashcardSetResponse {
+  success: boolean;
+  deletedFlashcardCount: number;
 }

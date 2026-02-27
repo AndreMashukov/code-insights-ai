@@ -130,3 +130,12 @@ export {
   moveDirectory,
   getDirectoryByPath,
 } from "./endpoints/directories";
+
+// Export flashcard management functions
+export {
+  generateFlashcards,
+  getFlashcardSets,
+  getFlashcardSet,
+  updateStudyProgress,
+  deleteFlashcardSet,
+} from "./endpoints/flashcards";

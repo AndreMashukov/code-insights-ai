@@ -690,4 +690,190 @@ export class GeminiService {
       };
     }
   }
+
+  /**
+   * Generate flashcards from document content using Gemini AI
+   * @param content - The document content to generate flashcards from
+   * @param options - Generation options including difficulty and custom instructions
+   * @returns Generated flashcard data
+   */
+  public static async generateFlashcards(
+    content: { title: string; content: string; wordCount: number },
+    options: {
+      difficulty?: 'beginner' | 'intermediate' | 'advanced';
+      customInstructions?: string;
+    } = {}
+  ): Promise<{
+    flashcards: Array<{
+      front: string;
+      back: string;
+      difficulty: 1 | 2 | 3 | 4 | 5;
+      tags: string[];
+    }>;
+  }> {
+    try {
+      functions.logger.info('Generating flashcards with Gemini AI', {
+        title: content.title,
+        wordCount: content.wordCount,
+        difficulty: options.difficulty || 'intermediate',
+      });
+
+      // Validate content
+      if (!content.content || content.content.trim().length === 0) {
+        throw new Error('Content cannot be empty');
+      }
+
+      if (content.wordCount < 50) {
+        throw new Error('Content is too short for flashcard generation (minimum 50 words)');
+      }
+
+      const genAI = this.getClient();
+      const model = genAI.getGenerativeModel({
+        model: "gemini-3-pro-preview",
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 8192,
+        },
+      });
+
+      // Build the prompt
+      const prompt = this.buildFlashcardPrompt(content, options);
+      
+      functions.logger.debug('Sending flashcard generation request to Gemini AI', {
+        promptLength: prompt.length,
+      });
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      if (!text) {
+        throw new Error('Empty response from Gemini API');
+      }
+
+      // Parse the response
+      const flashcardData = this.parseFlashcardResponse(text);
+
+      functions.logger.info('Flashcards generated successfully', {
+        count: flashcardData.flashcards.length,
+      });
+
+      return flashcardData;
+
+    } catch (error) {
+      functions.logger.error('Error generating flashcards with Gemini AI:', error);
+      throw new Error(`Failed to generate flashcards: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Build the prompt for flashcard generation
+   */
+  private static buildFlashcardPrompt(
+    content: { title: string; content: string },
+    options: { difficulty?: string; customInstructions?: string }
+  ): string {
+    const difficultyMap = {
+      beginner: 'Focus on basic definitions and fundamental concepts. Use simple language.',
+      intermediate: 'Balance between basics and more nuanced understanding. Include some technical details.',
+      advanced: 'Focus on complex relationships, edge cases, and deep understanding. Use technical terminology.',
+    };
+
+    const instructions = options.customInstructions
+      ? `\n\nAdditional instructions:\n${options.customInstructions}`
+      : '';
+
+    return `Generate a comprehensive set of flashcards from the following document content.
+
+Document Title: ${content.title}
+
+Document Content:
+${content.content}
+
+Requirements:
+1. Difficulty Level: ${options.difficulty || 'intermediate'}
+   ${difficultyMap[options.difficulty as keyof typeof difficultyMap] || difficultyMap.intermediate}
+
+2. Create between 10-20 flashcards depending on content complexity
+3. Each flashcard should:
+   - Have a clear, concise question on the front
+   - Provide a complete but concise answer on the back
+   - Focus on ONE concept per card
+   - Be self-contained (understandable without context)
+
+4. Difficulty ratings (1-5):
+   - 1: Basic definition or fact
+   - 2: Simple concept
+   - 3: Moderate complexity
+   - 4: Advanced concept
+   - 5: Expert level / nuanced understanding
+
+5. Add relevant tags for each card (e.g., "definition", "concept", "example", "process", "comparison")
+${instructions}
+
+Output Format (JSON only, no markdown):
+{
+  "flashcards": [
+    {
+      "front": "Question or prompt text",
+      "back": "Answer or explanation text",
+      "difficulty": 3,
+      "tags": ["tag1", "tag2"]
+    }
+  ]
+}
+
+Generate the flashcards now:`;
+  }
+
+  /**
+   * Parse the flashcard response from Gemini
+   */
+  private static parseFlashcardResponse(responseText: string): {
+    flashcards: Array<{
+      front: string;
+      back: string;
+      difficulty: 1 | 2 | 3 | 4 | 5;
+      tags: string[];
+    }>;
+  } {
+    try {
+      // Clean up the response
+      let cleanText = responseText.trim();
+      
+      // Remove markdown code blocks if present
+      if (cleanText.startsWith('```')) {
+        cleanText = cleanText.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```$/, '');
+      }
+
+      // Parse JSON
+      const parsed = JSON.parse(cleanText);
+
+      // Validate structure
+      if (!parsed.flashcards || !Array.isArray(parsed.flashcards)) {
+        throw new Error('Invalid response structure: missing flashcards array');
+      }
+
+      // Validate each flashcard
+      parsed.flashcards.forEach((card: any, index: number) => {
+        if (!card.front || !card.back) {
+          throw new Error(`Flashcard ${index + 1} is missing front or back`);
+        }
+        if (![1, 2, 3, 4, 5].includes(card.difficulty)) {
+          card.difficulty = 3; // Default to medium
+        }
+        if (!Array.isArray(card.tags)) {
+          card.tags = [];
+        }
+      });
+
+      return parsed;
+    } catch (error) {
+      functions.logger.error('Error parsing flashcard response:', error);
+      functions.logger.debug('Response text:', responseText.substring(0, 500));
+      throw new Error(`Failed to parse flashcard response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 }

@@ -17,6 +17,8 @@ import { DocumentViewerPage } from '../pages/DocumentViewerPage';
 import { MyQuizzesPage } from '../pages/MyQuizzesPage';
 import { RulesPage } from '../pages/RulesPage';
 import { DirectoryRulesPage } from '../pages/DirectoryRulesPage';
+import { FlashcardsPage } from '../pages/FlashcardsPage';
+import { FlashcardSetsPage } from '../pages/FlashcardSetsPage';
 import { Page } from '../components/Page';
 
 export function App() {
@@ -189,6 +191,28 @@ const AppContent = () => {
           <MainLayout>
             <ProtectedRoute>
               <DirectoryRulesPage />
+            </ProtectedRoute>
+          </MainLayout>
+        } 
+      />
+
+      {/* Flashcards Routes */}
+      <Route 
+        path="/flashcards" 
+        element={
+          <MainLayout>
+            <ProtectedRoute>
+              <FlashcardSetsPage />
+            </ProtectedRoute>
+          </MainLayout>
+        } 
+      />
+      <Route 
+        path="/flashcards/:setId" 
+        element={
+          <MainLayout>
+            <ProtectedRoute>
+              <FlashcardsPage />
             </ProtectedRoute>
           </MainLayout>
         } 
