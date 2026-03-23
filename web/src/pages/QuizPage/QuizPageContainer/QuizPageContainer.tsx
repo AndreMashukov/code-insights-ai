@@ -1,5 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ChevronLeft } from 'lucide-react';
 import { useQuizPageContext } from '../context';
 import { ProgressBar } from './ProgressBar';
 import { QuestionCard } from './QuestionCard';
@@ -19,6 +21,9 @@ import {
 } from '../../../store/slices/quizPageSlice';
 
 export const QuizPageContainer: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
   // Access Redux state directly (following architecture rules)
   const quizState = useSelector(selectQuizState);
   const currentQuestion = useSelector(selectCurrentQuestion);
@@ -34,6 +39,19 @@ export const QuizPageContainer: React.FC = () => {
   
   // Only get handlers and API from context
   const { handlers, quizApi } = useQuizPageContext();
+
+  const directoryIdForBack =
+    quizApi.firestoreQuiz?.directoryId?.trim() ||
+    searchParams.get('directoryId')?.trim() ||
+    null;
+
+  const handleBackToDirectory = () => {
+    if (directoryIdForBack) {
+      navigate(`/directory/${directoryIdForBack}`);
+    } else {
+      navigate('/');
+    }
+  };
 
   const handleAnswerSelect = (answerIndex: number) => {
     if (formState.selectedAnswer === null && currentQuestion) {
@@ -66,6 +84,14 @@ export const QuizPageContainer: React.FC = () => {
   if (error || quizApi.error) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-16">
+        <button
+          type="button"
+          onClick={handleBackToDirectory}
+          className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-6"
+        >
+          <ChevronLeft className="h-4 w-4 shrink-0" />
+          Back to directory
+        </button>
         <div className="text-center">
           <h2 className="text-2xl font-bold text-destructive mb-4">Error Loading Quiz</h2>
           <p className="text-muted-foreground mb-6">
@@ -86,6 +112,14 @@ export const QuizPageContainer: React.FC = () => {
   if (quizState.isCompleted) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-16">
+        <button
+          type="button"
+          onClick={handleBackToDirectory}
+          className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-6"
+        >
+          <ChevronLeft className="h-4 w-4 shrink-0" />
+          Back to directory
+        </button>
         <ScoreCard
           stats={stats}
           onResetQuiz={handlers.handleResetQuiz}
@@ -98,6 +132,14 @@ export const QuizPageContainer: React.FC = () => {
   if (quizState.questions.length === 0 || !currentQuestion) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-16">
+        <button
+          type="button"
+          onClick={handleBackToDirectory}
+          className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-6"
+        >
+          <ChevronLeft className="h-4 w-4 shrink-0" />
+          Back to directory
+        </button>
         <div className="text-center">
           <p className="text-muted-foreground mb-4">
             No quiz questions available
@@ -118,6 +160,14 @@ export const QuizPageContainer: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-16 space-y-8">
+      <button
+        type="button"
+        onClick={handleBackToDirectory}
+        className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors -mt-4 mb-2"
+      >
+        <ChevronLeft className="h-4 w-4 shrink-0" />
+        Back to directory
+      </button>
       {/* Progress Bar */}
       <ProgressBar
         progress={progress}
