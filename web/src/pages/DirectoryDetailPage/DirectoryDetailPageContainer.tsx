@@ -34,10 +34,13 @@ import {
 } from 'lucide-react';
 import { DocumentEnhanced, Directory, Quiz, FlashcardSet, SlideDeck, Rule } from '@shared-types';
 import { formatDate } from '../../utils/dateUtils';
-import { cn } from '../../lib/utils';
 import { CreateDirectoryDialog } from '../DocumentsPage/DocumentsPageContainer/CreateDirectoryDialog';
 import { DeleteDirectoryDialog } from '../DocumentsPage/DocumentsPageContainer/DeleteDirectoryDialog';
 import { DeleteDocumentDialog } from './DeleteDocumentDialog';
+import { DeleteArtifactDialog } from './DeleteArtifactDialog';
+import { useDeleteQuizMutation } from '../../store/api/Quiz/QuizApi';
+import { useDeleteFlashcardSetMutation } from '../../store/api/Flashcards/FlashcardsApi';
+import { useDeleteSlideDeckMutation } from '../../store/api/SlideDecks/SlideDecksApi';
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: string; className?: string }>> = {
   'Folder': Folder,
@@ -59,6 +62,13 @@ export const DirectoryDetailPageContainer = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{ directory: Directory | null }>({ directory: null });
   const [deleteDocDialog, setDeleteDocDialog] = useState<{ document: DocumentEnhanced | null }>({ document: null });
+  const [deleteQuizDialog, setDeleteQuizDialog] = useState<{ quiz: Quiz | null }>({ quiz: null });
+  const [deleteFlashcardSetDialog, setDeleteFlashcardSetDialog] = useState<{ flashcardSet: FlashcardSet | null }>({ flashcardSet: null });
+  const [deleteSlideDeckDialog, setDeleteSlideDeckDialog] = useState<{ slideDeck: SlideDeck | null }>({ slideDeck: null });
+
+  const [deleteQuiz, { isLoading: isDeletingQuiz }] = useDeleteQuizMutation();
+  const [deleteFlashcardSet, { isLoading: isDeletingFlashcardSet }] = useDeleteFlashcardSetMutation();
+  const [deleteSlideDeck, { isLoading: isDeletingSlideDeck }] = useDeleteSlideDeckMutation();
 
   const {
     data: contents,
@@ -304,16 +314,30 @@ export const DirectoryDetailPageContainer = () => {
                 <p className="text-sm text-muted-foreground">No quizzes in this directory yet.</p>
               ) : (
                 quizzes.map((q: Quiz) => (
-                  <Link
+                  <div
                     key={q.id}
-                    to={`/quiz/${q.id}?directoryId=${encodeURIComponent(directoryId ?? '')}`}
-                    className={cn(
-                      'block rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors'
-                    )}
+                    className="relative group rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors"
                   >
-                    <div className="font-medium">{q.title}</div>
-                    <div className="text-xs text-muted-foreground">{formatDate(q.createdAt)}</div>
-                  </Link>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive z-10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteQuizDialog({ quiz: q });
+                      }}
+                      aria-label={`Delete ${q.title}`}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                    <Link
+                      to={`/quiz/${q.id}?directoryId=${encodeURIComponent(directoryId ?? '')}`}
+                      className="block pr-10"
+                    >
+                      <div className="font-medium">{q.title}</div>
+                      <div className="text-xs text-muted-foreground">{formatDate(q.createdAt)}</div>
+                    </Link>
+                  </div>
                 ))
               )}
             </TabsContent>
@@ -322,16 +346,32 @@ export const DirectoryDetailPageContainer = () => {
                 <p className="text-sm text-muted-foreground">No flashcard sets yet.</p>
               ) : (
                 flashcardSets.map((f: FlashcardSet) => (
-                  <Link
+                  <div
                     key={f.id}
-                    to={`/flashcards/${f.id}?directoryId=${encodeURIComponent(directoryId ?? '')}`}
-                    className="block rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors"
+                    className="relative group rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors"
                   >
-                    <div className="font-medium">{f.title}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {formatDate(f.createdAt as unknown as Date)}
-                    </div>
-                  </Link>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive z-10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteFlashcardSetDialog({ flashcardSet: f });
+                      }}
+                      aria-label={`Delete ${f.title}`}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                    <Link
+                      to={`/flashcards/${f.id}?directoryId=${encodeURIComponent(directoryId ?? '')}`}
+                      className="block pr-10"
+                    >
+                      <div className="font-medium">{f.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {formatDate(f.createdAt as unknown as Date)}
+                      </div>
+                    </Link>
+                  </div>
                 ))
               )}
             </TabsContent>
@@ -340,16 +380,32 @@ export const DirectoryDetailPageContainer = () => {
                 <p className="text-sm text-muted-foreground">No slide decks yet.</p>
               ) : (
                 slideDecks.map((s: SlideDeck) => (
-                  <Link
+                  <div
                     key={s.id}
-                    to={`/slides/${s.id}?directoryId=${encodeURIComponent(directoryId ?? '')}`}
-                    className="block rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors"
+                    className="relative group rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors"
                   >
-                    <div className="font-medium">{s.title}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {formatDate(s.createdAt as unknown as Date)}
-                    </div>
-                  </Link>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive z-10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteSlideDeckDialog({ slideDeck: s });
+                      }}
+                      aria-label={`Delete ${s.title}`}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                    <Link
+                      to={`/slides/${s.id}?directoryId=${encodeURIComponent(directoryId ?? '')}`}
+                      className="block pr-10"
+                    >
+                      <div className="font-medium">{s.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {formatDate(s.createdAt as unknown as Date)}
+                      </div>
+                    </Link>
+                  </div>
                 ))
               )}
             </TabsContent>
@@ -453,6 +509,57 @@ export const DirectoryDetailPageContainer = () => {
         onClose={() => setDeleteDocDialog({ document: null })}
         document={deleteDocDialog.document}
         onSuccess={() => setDeleteDocDialog({ document: null })}
+      />
+
+      <DeleteArtifactDialog
+        isOpen={!!deleteQuizDialog.quiz}
+        onClose={() => setDeleteQuizDialog({ quiz: null })}
+        artifactType="Quiz"
+        artifactTitle={deleteQuizDialog.quiz?.title}
+        onDelete={async () => {
+          if (!deleteQuizDialog.quiz) return;
+          try {
+            await deleteQuiz({ quizId: deleteQuizDialog.quiz.id }).unwrap();
+            setDeleteQuizDialog({ quiz: null });
+          } catch (error) {
+            console.error('Failed to delete quiz:', error);
+          }
+        }}
+        isLoading={isDeletingQuiz}
+      />
+
+      <DeleteArtifactDialog
+        isOpen={!!deleteFlashcardSetDialog.flashcardSet}
+        onClose={() => setDeleteFlashcardSetDialog({ flashcardSet: null })}
+        artifactType="Flashcard Set"
+        artifactTitle={deleteFlashcardSetDialog.flashcardSet?.title}
+        onDelete={async () => {
+          if (!deleteFlashcardSetDialog.flashcardSet) return;
+          try {
+            await deleteFlashcardSet({ flashcardSetId: deleteFlashcardSetDialog.flashcardSet.id }).unwrap();
+            setDeleteFlashcardSetDialog({ flashcardSet: null });
+          } catch (error) {
+            console.error('Failed to delete flashcard set:', error);
+          }
+        }}
+        isLoading={isDeletingFlashcardSet}
+      />
+
+      <DeleteArtifactDialog
+        isOpen={!!deleteSlideDeckDialog.slideDeck}
+        onClose={() => setDeleteSlideDeckDialog({ slideDeck: null })}
+        artifactType="Slide Deck"
+        artifactTitle={deleteSlideDeckDialog.slideDeck?.title}
+        onDelete={async () => {
+          if (!deleteSlideDeckDialog.slideDeck) return;
+          try {
+            await deleteSlideDeck({ slideDeckId: deleteSlideDeckDialog.slideDeck.id }).unwrap();
+            setDeleteSlideDeckDialog({ slideDeck: null });
+          } catch (error) {
+            console.error('Failed to delete slide deck:', error);
+          }
+        }}
+        isLoading={isDeletingSlideDeck}
       />
     </Page>
   );

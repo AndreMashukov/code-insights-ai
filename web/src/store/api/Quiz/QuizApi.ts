@@ -77,6 +77,7 @@ export const quizApi = baseApi.injectEndpoints({
       invalidatesTags: (result, error, arg) => [
         { type: 'Quiz', id: arg.quizId },
         'UserQuizzes',
+        { type: 'Directory', id: 'CONTENTS' },
       ],
     }),
   }),

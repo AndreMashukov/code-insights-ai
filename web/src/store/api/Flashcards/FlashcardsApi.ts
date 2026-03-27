@@ -57,7 +57,11 @@ export const flashcardsApi = baseApi.injectEndpoints({
         functionName: 'deleteFlashcardSet',
         data,
       }),
-      invalidatesTags: ['UserFlashcardSets'],
+      invalidatesTags: (result, error, arg) => [
+        'UserFlashcardSets',
+        { type: 'FlashcardSet', id: arg.flashcardSetId },
+        { type: 'Directory', id: 'CONTENTS' },
+      ],
     }),
   }),
 });
