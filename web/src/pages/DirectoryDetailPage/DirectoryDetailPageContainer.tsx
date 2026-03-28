@@ -63,19 +63,14 @@ export const DirectoryDetailPageContainer = () => {
     setDeleteDialog,
     deleteDocDialog,
     setDeleteDocDialog,
-    deleteQuizDialog,
-    setDeleteQuizDialog,
-    deleteFlashcardSetDialog,
-    setDeleteFlashcardSetDialog,
-    deleteSlideDeckDialog,
-    setDeleteSlideDeckDialog,
-    handleDeleteQuiz,
-    handleDeleteFlashcardSet,
-    handleDeleteSlideDeck,
+    deleteArtifactDialog,
+    setDeleteArtifactDialog,
+    openDeleteQuizDialog,
+    openDeleteFlashcardSetDialog,
+    openDeleteSlideDeckDialog,
+    handleDeleteArtifact,
     handleNavigateBack,
-    isDeletingQuiz,
-    isDeletingFlashcardSet,
-    isDeletingSlideDeck,
+    isDeletingArtifact,
   } = useDirectoryDetailPageHandlers();
 
   const [artifactTab, setArtifactTab] = useState('quizzes');
@@ -329,7 +324,7 @@ export const DirectoryDetailPageContainer = () => {
                       className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive z-10"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setDeleteQuizDialog({ quiz: q });
+                        openDeleteQuizDialog(q);
                       }}
                       aria-label={`Delete ${q.title}`}
                     >
@@ -361,7 +356,7 @@ export const DirectoryDetailPageContainer = () => {
                       className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive z-10"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setDeleteFlashcardSetDialog({ flashcardSet: f });
+                        openDeleteFlashcardSetDialog(f);
                       }}
                       aria-label={`Delete ${f.title}`}
                     >
@@ -395,7 +390,7 @@ export const DirectoryDetailPageContainer = () => {
                       className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive z-10"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setDeleteSlideDeckDialog({ slideDeck: s });
+                        openDeleteSlideDeckDialog(s);
                       }}
                       aria-label={`Delete ${s.title}`}
                     >
@@ -517,30 +512,12 @@ export const DirectoryDetailPageContainer = () => {
       />
 
       <DeleteArtifactDialog
-        isOpen={!!deleteQuizDialog.quiz}
-        onClose={() => setDeleteQuizDialog({ quiz: null })}
-        artifactType="Quiz"
-        artifactTitle={deleteQuizDialog.quiz?.title}
-        onDelete={handleDeleteQuiz}
-        isLoading={isDeletingQuiz}
-      />
-
-      <DeleteArtifactDialog
-        isOpen={!!deleteFlashcardSetDialog.flashcardSet}
-        onClose={() => setDeleteFlashcardSetDialog({ flashcardSet: null })}
-        artifactType="Flashcard Set"
-        artifactTitle={deleteFlashcardSetDialog.flashcardSet?.title}
-        onDelete={handleDeleteFlashcardSet}
-        isLoading={isDeletingFlashcardSet}
-      />
-
-      <DeleteArtifactDialog
-        isOpen={!!deleteSlideDeckDialog.slideDeck}
-        onClose={() => setDeleteSlideDeckDialog({ slideDeck: null })}
-        artifactType="Slide Deck"
-        artifactTitle={deleteSlideDeckDialog.slideDeck?.title}
-        onDelete={handleDeleteSlideDeck}
-        isLoading={isDeletingSlideDeck}
+        isOpen={!!deleteArtifactDialog}
+        onClose={() => setDeleteArtifactDialog(null)}
+        artifactType={deleteArtifactDialog?.kind ?? ''}
+        artifactTitle={deleteArtifactDialog?.title}
+        onDelete={handleDeleteArtifact}
+        isLoading={isDeletingArtifact}
       />
     </Page>
   );
