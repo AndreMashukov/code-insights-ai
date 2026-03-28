@@ -38,9 +38,7 @@ import { CreateDirectoryDialog } from '../DocumentsPage/DocumentsPageContainer/C
 import { DeleteDirectoryDialog } from '../DocumentsPage/DocumentsPageContainer/DeleteDirectoryDialog';
 import { DeleteDocumentDialog } from './DeleteDocumentDialog';
 import { DeleteArtifactDialog } from './DeleteArtifactDialog';
-import { useDeleteQuizMutation } from '../../store/api/Quiz/QuizApi';
-import { useDeleteFlashcardSetMutation } from '../../store/api/Flashcards/FlashcardsApi';
-import { useDeleteSlideDeckMutation } from '../../store/api/SlideDecks/SlideDecksApi';
+import { useDirectoryDetailPageHandlers } from './context/hooks/useDirectoryDetailPageHandlers';
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: string; className?: string }>> = {
   'Folder': Folder,
@@ -57,18 +55,31 @@ const ARTIFACT_PAGE_LIMIT = 100;
 export const DirectoryDetailPageContainer = () => {
   const { directoryId } = useParams<{ directoryId: string }>();
   const navigate = useNavigate();
-  const [rulesOpen, setRulesOpen] = useState(false);
-  const [artifactTab, setArtifactTab] = useState('quizzes');
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [deleteDialog, setDeleteDialog] = useState<{ directory: Directory | null }>({ directory: null });
-  const [deleteDocDialog, setDeleteDocDialog] = useState<{ document: DocumentEnhanced | null }>({ document: null });
-  const [deleteQuizDialog, setDeleteQuizDialog] = useState<{ quiz: Quiz | null }>({ quiz: null });
-  const [deleteFlashcardSetDialog, setDeleteFlashcardSetDialog] = useState<{ flashcardSet: FlashcardSet | null }>({ flashcardSet: null });
-  const [deleteSlideDeckDialog, setDeleteSlideDeckDialog] = useState<{ slideDeck: SlideDeck | null }>({ slideDeck: null });
 
-  const [deleteQuiz, { isLoading: isDeletingQuiz }] = useDeleteQuizMutation();
-  const [deleteFlashcardSet, { isLoading: isDeletingFlashcardSet }] = useDeleteFlashcardSetMutation();
-  const [deleteSlideDeck, { isLoading: isDeletingSlideDeck }] = useDeleteSlideDeckMutation();
+  const {
+    createDialogOpen,
+    setCreateDialogOpen,
+    deleteDialog,
+    setDeleteDialog,
+    deleteDocDialog,
+    setDeleteDocDialog,
+    deleteQuizDialog,
+    setDeleteQuizDialog,
+    deleteFlashcardSetDialog,
+    setDeleteFlashcardSetDialog,
+    deleteSlideDeckDialog,
+    setDeleteSlideDeckDialog,
+    handleDeleteQuiz,
+    handleDeleteFlashcardSet,
+    handleDeleteSlideDeck,
+    handleNavigateBack,
+    isDeletingQuiz,
+    isDeletingFlashcardSet,
+    isDeletingSlideDeck,
+  } = useDirectoryDetailPageHandlers();
+
+  const [artifactTab, setArtifactTab] = useState('quizzes');
+  const [rulesOpen, setRulesOpen] = useState(false);
 
   const {
     data: contents,
@@ -144,13 +155,7 @@ export const DirectoryDetailPageContainer = () => {
           <Button
             variant="ghost"
             className="self-start gap-2 text-muted-foreground"
-            onClick={() =>
-              navigate(
-                ancestors.length > 0
-                  ? `/directory/${ancestors[ancestors.length - 1].id}`
-                  : '/documents'
-              )
-            }
+            onClick={() => handleNavigateBack(ancestors)}
           >
             <ArrowLeft size={18} />
             Back
@@ -516,15 +521,7 @@ export const DirectoryDetailPageContainer = () => {
         onClose={() => setDeleteQuizDialog({ quiz: null })}
         artifactType="Quiz"
         artifactTitle={deleteQuizDialog.quiz?.title}
-        onDelete={async () => {
-          if (!deleteQuizDialog.quiz) return;
-          try {
-            await deleteQuiz({ quizId: deleteQuizDialog.quiz.id }).unwrap();
-            setDeleteQuizDialog({ quiz: null });
-          } catch (error) {
-            console.error('Failed to delete quiz:', error);
-          }
-        }}
+        onDelete={handleDeleteQuiz}
         isLoading={isDeletingQuiz}
       />
 
@@ -533,15 +530,7 @@ export const DirectoryDetailPageContainer = () => {
         onClose={() => setDeleteFlashcardSetDialog({ flashcardSet: null })}
         artifactType="Flashcard Set"
         artifactTitle={deleteFlashcardSetDialog.flashcardSet?.title}
-        onDelete={async () => {
-          if (!deleteFlashcardSetDialog.flashcardSet) return;
-          try {
-            await deleteFlashcardSet({ flashcardSetId: deleteFlashcardSetDialog.flashcardSet.id }).unwrap();
-            setDeleteFlashcardSetDialog({ flashcardSet: null });
-          } catch (error) {
-            console.error('Failed to delete flashcard set:', error);
-          }
-        }}
+        onDelete={handleDeleteFlashcardSet}
         isLoading={isDeletingFlashcardSet}
       />
 
@@ -550,15 +539,7 @@ export const DirectoryDetailPageContainer = () => {
         onClose={() => setDeleteSlideDeckDialog({ slideDeck: null })}
         artifactType="Slide Deck"
         artifactTitle={deleteSlideDeckDialog.slideDeck?.title}
-        onDelete={async () => {
-          if (!deleteSlideDeckDialog.slideDeck) return;
-          try {
-            await deleteSlideDeck({ slideDeckId: deleteSlideDeckDialog.slideDeck.id }).unwrap();
-            setDeleteSlideDeckDialog({ slideDeck: null });
-          } catch (error) {
-            console.error('Failed to delete slide deck:', error);
-          }
-        }}
+        onDelete={handleDeleteSlideDeck}
         isLoading={isDeletingSlideDeck}
       />
     </Page>
