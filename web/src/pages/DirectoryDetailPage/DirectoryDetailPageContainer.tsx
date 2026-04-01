@@ -28,6 +28,7 @@ import { CreateDirectoryDialog } from '../DocumentsPage/DocumentsPageContainer/C
 import { EditDirectoryDialog } from '../DocumentsPage/DocumentsPageContainer/EditDirectoryDialog';
 import { DeleteDocumentDialog } from './DeleteDocumentDialog';
 import { DeleteArtifactDialog, ArtifactToDelete } from './DeleteArtifactDialog';
+import { DeleteDirectoryDialog } from './DeleteDirectoryDialog';
 import { DirectoryIconSidebar, PanelType } from './DirectoryIconSidebar';
 import { SourcesPanel } from './SourcesPanel';
 import { QuizzesPanel } from './QuizzesPanel';
@@ -325,6 +326,8 @@ export const DirectoryDetailPageContainer = () => {
       />
 
       <DeleteArtifactDialog
+        isOpen={!!deleteArtifactDialog.artifact}
+        onClose={() => setDeleteArtifactDialog({ artifact: null })}
         artifact={deleteArtifactDialog.artifact}
       />
     </Page>
