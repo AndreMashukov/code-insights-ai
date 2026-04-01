@@ -20,11 +20,12 @@ import {
   MoreVertical,
   Trash2,
   Shield,
+  Pencil,
 } from 'lucide-react';
 import { DocumentEnhanced, Directory, DiagramQuiz } from '@shared-types';
 import { ICON_MAP } from '../DocumentsPage/DocumentsPageContainer/folderConstants';
 import { CreateDirectoryDialog } from '../DocumentsPage/DocumentsPageContainer/CreateDirectoryDialog';
-import { DeleteDirectoryDialog } from '../DocumentsPage/DocumentsPageContainer/DeleteDirectoryDialog';
+import { EditDirectoryDialog } from '../DocumentsPage/DocumentsPageContainer/EditDirectoryDialog';
 import { DeleteDocumentDialog } from './DeleteDocumentDialog';
 import { DeleteArtifactDialog, ArtifactToDelete } from './DeleteArtifactDialog';
 import { DirectoryIconSidebar, PanelType } from './DirectoryIconSidebar';
@@ -49,6 +50,7 @@ export const DirectoryDetailPageContainer = () => {
     setActivePanel('sources');
   }, [directoryId]);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialog, setEditDialog] = useState<{ directory: Directory | null }>({ directory: null });
   const [deleteDialog, setDeleteDialog] = useState<{ directory: Directory | null }>({ directory: null });
   const [deleteDocDialog, setDeleteDocDialog] = useState<{ document: DocumentEnhanced | null }>({ document: null });
   const [deleteArtifactDialog, setDeleteArtifactDialog] = useState<{ artifact: ArtifactToDelete | null }>({ artifact: null });
@@ -213,6 +215,12 @@ export const DirectoryDetailPageContainer = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
+                          onClick={() => setEditDialog({ directory: sub })}
+                        >
+                          <Pencil size={14} className="mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           onClick={() => navigate(`/directories/${sub.id}/rules`)}
                         >
                           <Shield size={14} className="mr-2" />
@@ -309,9 +317,14 @@ export const DirectoryDetailPageContainer = () => {
         onSuccess={() => setDeleteDocDialog({ document: null })}
       />
 
+      <EditDirectoryDialog
+        isOpen={!!editDialog.directory}
+        onClose={() => setEditDialog({ directory: null })}
+        directory={editDialog.directory}
+        onSuccess={() => setEditDialog({ directory: null })}
+      />
+
       <DeleteArtifactDialog
-        isOpen={!!deleteArtifactDialog.artifact}
-        onClose={() => setDeleteArtifactDialog({ artifact: null })}
         artifact={deleteArtifactDialog.artifact}
       />
     </Page>
