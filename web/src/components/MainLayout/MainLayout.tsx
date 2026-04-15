@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 import { ThemeToggle } from '../ThemeToggle';
 import { IMainLayout } from './IMainLayout';
@@ -18,6 +19,10 @@ export const MainLayout: React.FC<IMainLayout> = ({ children }) => {
   const { isAppFullscreen } = useAppFullscreen();
   const dispatch = useDispatch();
   const sidebarIsOpen = useSelector(selectSidebarIsOpen);
+
+  const handleToggleSidebar = () => {
+    dispatch(toggleSidebar());
+  };
 
   if (loading) {
     return (
@@ -37,14 +42,14 @@ export const MainLayout: React.FC<IMainLayout> = ({ children }) => {
           <div className="px-4">
             <div className="flex items-center justify-between h-12">
               <div className="flex items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => dispatch(toggleSidebar())}
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleToggleSidebar}
                   aria-label={sidebarIsOpen ? 'Close sidebar' : 'Open sidebar'}
                 >
                   <Menu size={20} />
-                </button>
+                </Button>
                 <Link
                   to="/"
                   aria-label="AI Learning Assistant"
